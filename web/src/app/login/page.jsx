@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { supabase, createBusiness } from '@/lib/supabase'
 
 export default function LoginPage() {
   const [mode, setMode]       = useState('login') // login | signup
@@ -27,17 +27,9 @@ export default function LoginPage() {
           throw new Error('Could not create user. If you already have an account, please Sign In. Otherwise, check your email for a confirmation link.')
         }
 
-        // Create business + member
-        const { data: biz, error: bizErr } = await supabase.from('businesses')
-          .insert({ owner_id: data.user.id, name: bizName, email }).select().single()
+        // Create business + member using centralized function
+        await createBusiness(data.user.id, { name: bizName, email })
         
-        if (bizErr) throw bizErr
-
-        const { error: memErr } = await supabase.from('business_members')
-          .insert({ business_id: biz.id, user_id: data.user.id, role: 'owner', email, name: bizName })
-        
-        if (memErr) throw memErr
-
         router.push('/dashboard')
       }
     } catch (err) {

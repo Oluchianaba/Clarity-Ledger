@@ -21,10 +21,21 @@ export const auth = {
 export async function getBusinessId() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
-  const { data } = await supabase
+  
+  // 1. Check business_members
+  const { data: member, error: mErr } = await supabase
     .from('business_members').select('business_id')
-    .eq('user_id', user.id).single()
-  return data?.business_id
+    .eq('user_id', user.id).maybeSingle()
+  
+  if (mErr) console.error('getBusinessId Error (members):', mErr)
+  if (member?.business_id) return member.business_id
+
+  // 2. Fallback: Check businesses if user is owner
+  const { data: biz, error: bErr } = await supabase.from('businesses')
+    .select('id').eq('owner_id', user.id).maybeSingle()
+  
+  if (bErr) console.error('getBusinessId Error (businesses):', bErr)
+  return biz?.id
 }
 
 // ── BUSINESS SETUP ────────────────────────────────────────────
@@ -69,13 +80,19 @@ export async function getMonthlyPL(months = 12) {
 
 // ── TRANSACTIONS ──────────────────────────────────────────────
 export async function getTransactions({ page = 0, limit = 50, type, category, search } = {}) {
+  const bizId = await getBusinessId()
   let q = supabase.from('transactions').select('*', { count: 'exact' })
     .order('date', { ascending: false })
+    .order('created_at', { ascending: false })
     .range(page * limit, (page + 1) * limit - 1)
+  
+  // Explicitly filter only if we have a bizId, otherwise rely on RLS (which might return empty if no membership)
+  if (bizId) q = q.eq('business_id', bizId)
+  
   if (type) q = q.eq('type', type)
   if (category) q = q.eq('category', category)
   if (search) q = q.ilike('description', `%${search}%`)
-  return q
+  return await q
 }
 
 export async function addTransaction(data) {

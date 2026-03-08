@@ -19,8 +19,14 @@ export default function TransactionsPage() {
 
   async function load() {
     setLoading(true)
-    const { data, count } = await getTransactions({ page, ...filter })
-    setRows(data || []); setTotal(count || 0); setLoading(false)
+    try {
+      const { data, count, error } = await getTransactions({ page, ...filter })
+      if (error) throw error
+      setRows(data || []); setTotal(count || 0)
+    } catch (err) {
+      showToast(err.message, 'error')
+    }
+    setLoading(false)
   }
 
   useEffect(() => { load() }, [page, filter])
@@ -51,7 +57,7 @@ export default function TransactionsPage() {
         await addTransaction({ ...form, amount: Number(form.amount), business_id: bizId, recorded_by: user.id })
         showToast('Transaction saved ✅')
       }
-      setShow(false); load()
+      setShow(false); await load()
     } catch (err) { showToast(err.message, 'error') }
     setSaving(false)
   }
