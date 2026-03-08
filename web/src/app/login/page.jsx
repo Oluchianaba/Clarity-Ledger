@@ -82,6 +82,11 @@ export default function LoginPage() {
             <Input label="Email Address" type="email" value={email} onChange={setEmail} placeholder="you@business.com" />
             <Input label="Password" type="password" value={password} onChange={setPass} placeholder="Min. 8 characters" />
 
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: -4 }}>
+              <input type="checkbox" id="remember" defaultChecked style={{ accentColor: '#22C55E', cursor: 'pointer' }} />
+              <label htmlFor="remember" style={{ color: '#86EFAC', fontSize: 13, cursor: 'pointer' }}>Remember me</label>
+            </div>
+
             {error && <div style={{
               background:'rgba(239,68,68,.15)', border:'1px solid rgba(239,68,68,.3)',
               borderRadius:10, padding:'10px 14px', color:'#FCA5A5', fontSize:13
@@ -114,6 +119,7 @@ function Input({ label, value, onChange, type='text', placeholder='' }) {
       <input
         type={type} value={value} onChange={e => onChange(e.target.value)}
         placeholder={placeholder} required
+        autoComplete={type === 'password' ? 'current-password' : type === 'email' ? 'username' : 'off'}
         style={{
           width:'100%', padding:'12px 14px', background:'rgba(0,0,0,.3)',
           border:'1px solid rgba(255,255,255,.12)', borderRadius:10,
