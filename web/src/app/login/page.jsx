@@ -22,11 +22,22 @@ export default function LoginPage() {
       } else {
         const { data, error: err } = await supabase.auth.signUp({ email, password })
         if (err) throw err
+        
+        if (!data?.user) {
+          throw new Error('Could not create user. If you already have an account, please Sign In. Otherwise, check your email for a confirmation link.')
+        }
+
         // Create business + member
-        const { data: biz } = await supabase.from('businesses')
+        const { data: biz, error: bizErr } = await supabase.from('businesses')
           .insert({ owner_id: data.user.id, name: bizName, email }).select().single()
-        await supabase.from('business_members')
+        
+        if (bizErr) throw bizErr
+
+        const { error: memErr } = await supabase.from('business_members')
           .insert({ business_id: biz.id, user_id: data.user.id, role: 'owner', email, name: bizName })
+        
+        if (memErr) throw memErr
+
         router.push('/dashboard')
       }
     } catch (err) {
