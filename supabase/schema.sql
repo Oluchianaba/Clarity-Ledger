@@ -147,7 +147,10 @@ RETURNS UUID LANGUAGE sql SECURITY DEFINER AS $$
   SELECT business_id FROM business_members WHERE user_id = auth.uid() LIMIT 1; $$;
 
 CREATE POLICY "own"    ON businesses       FOR ALL USING (owner_id = auth.uid());
-CREATE POLICY "member" ON business_members FOR ALL USING (business_id = get_user_business_id());
+CREATE POLICY "member_select" ON business_members FOR SELECT USING (business_id = get_user_business_id());
+CREATE POLICY "member_insert" ON business_members FOR INSERT WITH CHECK (business_id IN (SELECT id FROM businesses WHERE owner_id = auth.uid()) OR business_id = get_user_business_id());
+CREATE POLICY "member_update" ON business_members FOR UPDATE USING (business_id IN (SELECT id FROM businesses WHERE owner_id = auth.uid()));
+CREATE POLICY "member_delete" ON business_members FOR DELETE USING (business_id IN (SELECT id FROM businesses WHERE owner_id = auth.uid()));
 CREATE POLICY "member" ON customers        FOR ALL USING (business_id = get_user_business_id());
 CREATE POLICY "member" ON suppliers        FOR ALL USING (business_id = get_user_business_id());
 CREATE POLICY "member" ON products         FOR ALL USING (business_id = get_user_business_id());
