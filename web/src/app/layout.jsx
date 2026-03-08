@@ -114,8 +114,40 @@ export default function RootLayout({ children }) {
             </aside>
 
             {/* Main content */}
-            <main style={{ marginLeft: open ? 240 : 72, flex:1, padding:'32px', transition:'margin .25s', minHeight:'100vh' }}>
-              {children}
+            <main style={{ marginLeft: open ? 240 : 72, flex:1, transition:'margin .25s', minHeight:'100vh', display:'flex', flexDirection:'column' }}>
+              {/* Top Navigation */}
+              <header style={{
+                height: 64, background: '#fff', borderBottom: '1px solid #E5E7EB',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '0 32px', position: 'sticky', top: 0, zIndex: 90,
+                boxShadow: '0 2px 4px rgba(0,0,0,.02)'
+              }}>
+                <div style={{ fontSize: 14, color: '#6B7280', fontWeight: 500 }}>
+                  {business ? `🏢 ${business.name}` : 'Clarity Ledger'}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <div style={{ textAlign: 'right', display: open ? 'none' : 'block' }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#0F2419' }}>{user?.email?.split('@')[0]}</div>
+                    <div style={{ fontSize: 11, color: '#6B7280' }}>Business Owner</div>
+                  </div>
+                  <button 
+                    onClick={() => { supabase.auth.signOut().then(() => router.push('/login')) }}
+                    style={{
+                      background: '#FEF2F2', border: '1px solid #FEE2E2', borderRadius: 10,
+                      padding: '8px 16px', color: '#DC2626', fontWeight: 600, fontSize: 13,
+                      cursor: 'pointer', transition: 'all .2s', display: 'flex', alignItems: 'center', gap: 6
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#FEE2E2'}
+                    onMouseLeave={e => e.currentTarget.style.background = '#FEF2F2'}
+                  >
+                    <span>Logout</span> 🚪
+                  </button>
+                </div>
+              </header>
+
+              <div style={{ padding: '32px', flex: 1 }}>
+                {children}
+              </div>
             </main>
           </div>
         )}
